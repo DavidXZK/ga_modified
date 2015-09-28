@@ -2,7 +2,8 @@
 #include <fstream>
 #include <cmath>
 #include <time.h>
-
+#include <stdlib.h>
+#include <string.h>
 using namespace std;
 
 const double PI = 3.1415926;
