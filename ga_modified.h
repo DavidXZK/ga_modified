@@ -24,7 +24,7 @@ double X[N][XNUM];  //X变量
 double Y[N][2],Z[N][NN];
 double m[N][2*NN];
 double t[N];     // parameter t 抽检比例
-double rand1[2*IN][RNUM],rand2[N][RNUM];
+double rand1[RNUM],rand2[N][RNUM];
 double obj[2*P];
 double mp,vp,best;
 double qij_mean[N],qijh_mean[N],qijl_mean[N];
@@ -244,7 +244,7 @@ double objective(double *para){
 			sums[indu[j]] += rev[j][i];
 		}
 		for(int j=0;j<N;j++){
-			TotalR[j] += rev[j][i]/sums[insu[j]]; 
+			TotalR[j] += rev[j][i]/sums[indu[j]]; 
 		}
 	}//for RNUM
 	for(int i=0;i<N;i++){

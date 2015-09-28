@@ -12,7 +12,7 @@ const int N = 3189;     //num of sample
 const int RNUM = 250;   //random num
 const int XNUM = 0;    //theta para num
 //para: mur mub cl ch k rou 6 theta 21
-const int PNUM = 6;    //para num
+const int PNUM = 10;    //para num
 const int IN = 10;       //industry num
 const int NN = 24;     //Z num
 const int HH = 100;
@@ -148,6 +148,29 @@ void readData(){
 	}
 	frand.close();
 	cout<<"GA() out"<<endl;
+}
+//***************************quality*******************************
+void quality(double *para){
+	for(int i=0;i<IN;i++){
+		for(int j=0;j<RNUM;j++){
+			F[i][j] = normcdf(rand1[i][j] + para[0]);
+			G[i][j] = normcdf(rand1[IN+i][j] + para[1]);
+			q_bar[i][j] = (F[i][j]*q0[i])/(F[i][j]*q0[i] + G[i][j]*(1-q0[i]));
+			q_ijr[i][j] = F[i][j] + q_bar[i][j]*(1-F[i][j]);
+			q_ijb[i][j] = q_bar[i][j]*(1-G[i][j]);
+		}
+	}
+}
+void quality_change(double *para){
+	for(int i=0;i<IN;i++){
+		for(int j=0;j<RNUM;j++){
+			F[i][j] = normcdf(rand1[i][j] + para[0] + para[6]*Z);
+			G[i][j] = normcdf(rand1[IN+i][j] + para[1]);
+			q_bar[i][j] = (F[i][j]*q0[i])/(F[i][j]*q0[i] + G[i][j]*(1-q0[i]));
+			q_ijr[i][j] = F[i][j] + q_bar[i][j]*(1-F[i][j]);
+			q_ijb[i][j] = q_bar[i][j]*(1-G[i][j]);
+		}
+	}
 }
 //***************************obj*******************************
 double objective(double *para){
