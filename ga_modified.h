@@ -24,7 +24,7 @@ double X[N][XNUM];  //X变量
 double Y[N][2],Z[N][NN];
 double m[N][2*NN];
 double t[N];     // parameter t 抽检比例
-double rand1[RNUM],rand2[N][RNUM];
+double rand1[2][RNUM],rand2[N][RNUM];
 double obj[2*P];
 double mp,vp,best;
 double qij_mean[N],qijh_mean[N],qijl_mean[N];
@@ -36,8 +36,8 @@ int codeX1[P][PNUM][M];
 int codeX2[P][PNUM][M];
 
 double q0[N],W[2*NN][2*NN],rev[N][RNUM];
-double F[IN][RNUM],G[IN][RNUM];
-double q_bar[IN][RNUM],q_ijr[IN][RNUM],q_ijb[IN][RNUM];
+double F[N][RNUM],G[N][RNUM];
+double q_bar[N][RNUM],q_ijr[N][RNUM],q_ijb[N][RNUM];
 
 ofstream fout("result_ga_modified.txt");
 
@@ -135,7 +135,7 @@ void readData(){
 	fin_z.close();
 	//读取随机正态，每次一致
 	ifstream frand("randnums");
-	for(int i=0;i<2*IN;i++){
+	for(int i=0;i<2;i++){
 		for(int j=0;j<RNUM;j++){
 			frand>>rand1[i][j];
 		}
@@ -150,10 +150,10 @@ void readData(){
 }
 //***************************obj*******************************
 double objective(double *para){
-	for(int i=0;i<IN;i++){
+	for(int i=0;i<N;i++){
 		for(int j=0;j<RNUM;j++){
-			F[i][j] = normcdf(rand1[i][j] + para[0]);
-			G[i][j] = normcdf(rand1[IN+i][j] + para[1]);
+			F[i][j] = normcdf(rand1[0][j] + para[0]);
+			G[i][j] = normcdf(rand1[1][j] + para[1]);
 			q_bar[i][j] = (F[i][j]*q0[i])/(F[i][j]*q0[i] + G[i][j]*(1-q0[i]));
 			q_ijr[i][j] = F[i][j] + q_bar[i][j]*(1-F[i][j]);
 			q_ijb[i][j] = q_bar[i][j]*(1-G[i][j]);
@@ -165,9 +165,9 @@ double objective(double *para){
 	for(int i=0;i<N;i++){
 		sum = 0,sum1 = 0,sum2 = 0;
 		for(int j=0;j<RNUM;j++){
-			sum += pow(q_bar[indu[i]][j],rhox);
-			sum1 += pow(q_ijr[indu[i]][j],rhox);
-			sum2 += pow(q_ijb[indu[i]][j],rhox);
+			sum += pow(q_bar[i][j],rhox);
+			sum1 += pow(q_ijr[i][j],rhox);
+			sum2 += pow(q_ijb[i][j],rhox);
 		}
 		qij_mean[i] = sum/RNUM;
 		qijh_mean[i] = sum1/RNUM;

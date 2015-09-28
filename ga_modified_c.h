@@ -1,3 +1,5 @@
+/*new quality no theta
+*/
 #include <iostream>
 #include <fstream>
 #include <cmath>

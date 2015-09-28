@@ -24,7 +24,7 @@ int main(int argc,char**argv){
 		fin>>Y[i][0]>>Y[i][1];
 		fin>>temp_int>>temp_double;   //lnlabor09
 		fin>>temp_double;
-		X[i][index++] = log(temp_double);
+		X[i][index++] = temp_double;
 		fin>>temp_double;
 		X[i][index++] = log(temp_double);
 		fin>>temp_int;
