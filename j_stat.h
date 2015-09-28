@@ -99,7 +99,7 @@ void readData(){
 	}
 	cout<<"jstat() out"<<endl;
 }
-//***************************obj*******************************
+//***************************getS*******************************
 double getS(double *para){
 	for(int i=0;i<IN;i++){
 		for(int j=0;j<RNUM;j++){
@@ -219,28 +219,25 @@ double getS(double *para){
 			}
 		}	
 	}
-	for(int j=0;j<2*NN;j++){
-        for(int i=0;i<N;i++){
-	         m_mean[j] += m[i][j];
-        }
-	}
-	for(int i=0;i<2*NN;i++){
-		m_mean[i] = m_mean[i]/N;
-	}
-	double objs = 0;
-	double obj1[2*NN];
-	memset(obj1,0,sizeof(obj1));
+	double S[2*NN][2*NN];
 	for(int i=0;i<2*NN;i++){
 		for(int j=0;j<2*NN;j++){
-			obj1[i] += m_mean[j]*W[j][i]; 
+			double ss = 0;
+			for(int k=0;k<N;k++){
+				ss += m[k][i]*m[k][j];
+			}
+			S[i][j] = ss/(double)N;
 		}
 	}
+	ofstream fout("SS");
 	for(int i=0;i<2*NN;i++){
-		objs += obj1[i]*m_mean[i]; 
+		for(int j=0;j<2*NN;j++){
+			fout<<S[i][j]<<" ";
+		}
+		fout<<endl;
 	}
-	objs *= N;
-	return objs;
-}//obj
+	fout.close();
+}//getS
 //************************************
 double jstat(double *para){
 	for(int i=0;i<IN;i++){
@@ -369,7 +366,7 @@ double jstat(double *para){
 	for(int i=0;i<2*NN;i++){
 		m_mean[i] = m_mean[i]/N;
 	}
-	double objs = 0;
+	double jstat = 0;
 	double obj1[2*NN];
 	memset(obj1,0,sizeof(obj1));
 	for(int i=0;i<2*NN;i++){
@@ -378,8 +375,8 @@ double jstat(double *para){
 		}
 	}
 	for(int i=0;i<2*NN;i++){
-		objs += obj1[i]*m_mean[i]; 
+		jstat += obj1[i]*m_mean[i]; 
 	}
-	objs *= N;
-	return objs;
+	jstat *= N;
+	return jstat;
 }//jstat
