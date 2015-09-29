@@ -12,9 +12,10 @@ using namespace std;
 const double PI = 3.1415926;
 const int N = 3189;     //num of sample
 const int RNUM = 250;   //random num
+const int CNUM = 10;
 const int XNUM = 0;    //theta para num
 //para: mur mub cl ch k rou 6 theta 21
-const int PNUM = 10;    //para num
+const int PNUM = CNUM+XNUM;    //para num
 const int IN = 10;       //industry num
 const int NN = 24;     //Z num
 const int HH = 100;
@@ -27,7 +28,7 @@ int indu[N];     //belong to which industry
 double Y[N][2],Z[N][NN];
 double m[N][2*NN];
 double t[N];     // parameter t 抽检比例
-double rand1[2*IN][RNUM],rand2[N][RNUM];
+double rand1[2][RNUM],rand2[N][RNUM];
 double obj[2*P];
 double mp,vp,best;
 double qij_mean[N],qijh_mean[N],qijl_mean[N];
@@ -39,8 +40,8 @@ int codeX1[P][PNUM][M];
 int codeX2[P][PNUM][M];
 
 double q0[N],W[2*NN][2*NN],rev[N][RNUM];
-double F[IN][RNUM],G[IN][RNUM];
-double q_bar[IN][RNUM],q_ijr[IN][RNUM],q_ijb[IN][RNUM];
+double F[N][RNUM],G[N][RNUM];
+double q_bar[N][RNUM],q_ijr[N][RNUM],q_ijb[N][RNUM];
 
 ofstream fout("result_ga_modified.txt");
 
@@ -138,7 +139,7 @@ void readData(){
 	fin_z.close();
 	//读取随机正态，每次一致
 	ifstream frand("randnums");
-	for(int i=0;i<2*IN;i++){
+	for(int i=0;i<2;i++){
 		for(int j=0;j<RNUM;j++){
 			frand>>rand1[i][j];
 		}
@@ -153,10 +154,10 @@ void readData(){
 }
 //***************************quality*******************************
 void quality(double *para){
-	for(int i=0;i<IN;i++){
+	for(int i=0;i<N;i++){
 		for(int j=0;j<RNUM;j++){
-			F[i][j] = normcdf(rand1[i][j] + para[0]);
-			G[i][j] = normcdf(rand1[IN+i][j] + para[1]);
+			F[i][j] = normcdf(rand1[0][j] + para[0]);
+			G[i][j] = normcdf(rand1[1][j] + para[1]);
 			q_bar[i][j] = (F[i][j]*q0[i])/(F[i][j]*q0[i] + G[i][j]*(1-q0[i]));
 			q_ijr[i][j] = F[i][j] + q_bar[i][j]*(1-F[i][j]);
 			q_ijb[i][j] = q_bar[i][j]*(1-G[i][j]);
@@ -164,10 +165,11 @@ void quality(double *para){
 	}
 }
 void quality_change(double *para){
-	for(int i=0;i<IN;i++){
+	for(int i=0;i<N;i++){
 		for(int j=0;j<RNUM;j++){
-			F[i][j] = normcdf(rand1[i][j] + para[0] + para[6]*Z);
-			G[i][j] = normcdf(rand1[IN+i][j] + para[1]);
+			//2+9 lnasset lnyear
+			F[i][j] = normcdf(rand1[0][j] + para[0] + para[6]*Z[11] + para[7]*Z[12]);
+			G[i][j] = normcdf(rand1[1][j] + para[1] + para[8]*Z[13] + para[9]*Z[14]);
 			q_bar[i][j] = (F[i][j]*q0[i])/(F[i][j]*q0[i] + G[i][j]*(1-q0[i]));
 			q_ijr[i][j] = F[i][j] + q_bar[i][j]*(1-F[i][j]);
 			q_ijb[i][j] = q_bar[i][j]*(1-G[i][j]);
@@ -176,15 +178,7 @@ void quality_change(double *para){
 }
 //***************************obj*******************************
 double objective(double *para){
-	for(int i=0;i<IN;i++){
-		for(int j=0;j<RNUM;j++){
-			F[i][j] = normcdf(rand1[i][j] + para[0]);
-			G[i][j] = normcdf(rand1[IN+i][j] + para[1]);
-			q_bar[i][j] = (F[i][j]*q0[i])/(F[i][j]*q0[i] + G[i][j]*(1-q0[i]));
-			q_ijr[i][j] = F[i][j] + q_bar[i][j]*(1-F[i][j]);
-			q_ijb[i][j] = q_bar[i][j]*(1-G[i][j]);
-		}
-	}
+	quality_change(para);
 	double rho = para[5];
 	double rhox = rho/(1.0 - rho);
 	double sum,sum1,sum2;
@@ -204,13 +198,17 @@ double objective(double *para){
 	double revmean[N][2];
 	for(int i=0;i<N;i++){
 		sum = 0;
+		double temp[RNUM];
+		for(int j=0;j<RNUM;j++){
+			temp[j] = exp(-(rand2[i][j]));
+		}
 		if(color[i]==0){
 			double ch[RNUM],cl[RNUM],dh[RNUM],dl[RNUM],paih,pail;
 			double sum_paih = 0,sum_pail = 0;
 			for(int j=0;j<RNUM;j++){
-				double temp = exp(-(rand2[i][j]));
-				ch[j] = para[3]*temp;
-				cl[j] = para[2]*temp;
+				//double temp = exp(-(rand2[i][j]));
+				ch[j] = para[3]*temp[j];
+				cl[j] = para[2]*temp[j];
 				dh[j] = para[4]*pow(ch[j]/rho,rhoy);
 				dl[j] = para[4]*pow(cl[j]/rho,rhoy);
 				paih = t[i]*(ch[j]/rho - ch[j])*dh[j]*qijh_mean[i] + (1-t[i])*(ch[j]/rho - ch[j])*dh[j]*qij_mean[i];
@@ -234,8 +232,8 @@ double objective(double *para){
 		}
 		if(color[i]==1){        //HIGH
 			for(int j=0;j<RNUM;j++){
-				double temp = exp(-(rand2[i][j]));
-				double ch = para[3]*temp;
+				//double temp = exp(-(rand2[i][j]));
+				double ch = para[3]*temp[j];
 				double h = ch/rho;
 				double dh = para[4]*pow(h,rhoy);
 				rev[i][j] = dh*h*qijh_mean[i];
@@ -246,8 +244,8 @@ double objective(double *para){
 		}
 		if(color[i]==2){//low
 			for(int j=0;j<RNUM;j++){
-				double temp = exp(-(rand2[i][j]));
-				double cl = para[2]*temp;
+				//double temp = exp(-(rand2[i][j]));
+				double cl = para[2]*temp[j];
 				double l = cl/rho;
 				double dl = para[4]*pow(l,rhoy);
 				rev[i][j] = dl*l*qijl_mean[i];

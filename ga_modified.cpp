@@ -24,7 +24,7 @@ int main(int argc,char**argv){
 	double *obj_slaves = NULL;
 	double *obj_mpis = NULL;
 	//int n=1;
-	int times = 2000;
+	int times = 4000;
 	double beta = 0;
 	int ll = P/(numprocs -1);
 	readData();

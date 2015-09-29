@@ -11,7 +11,7 @@ const double PI = 3.1415926;
 const int N = 3189;     //num of sample
 const int RNUM = 250;   //random num
 const int XNUM = 0;    //theta para num
-const int CNUM = 7;
+const int CNUM = 6;
 //para: mur mub cl ch k rou 6 theta 21
 const int PNUM = CNUM + XNUM;    //para num
 const int IN = 10;       //industry num
@@ -311,11 +311,11 @@ void popinit(){
 	}
 	//the left 21(X)
 	/*ifstream fin("para_initial.txt");
-	for(int j=6;j<PNUM;j++){
+	for(int j=CNUM;j<PNUM;j++){
 		fin>>paras[0][j];
 	}
 	for(int i=1;i<HH;i++){
-		for(int j=6;j<PNUM;j++){
+		for(int j=CNUM;j<PNUM;j++){
 			paras[i][j] = paras[0][j];
 		}
 	}
