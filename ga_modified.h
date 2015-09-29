@@ -10,8 +10,9 @@ const double PI = 3.1415926;
 const int N = 3189;     //num of sample
 const int RNUM = 250;   //random num
 const int XNUM = 21;    //theta para num
-//para: mur mub cl ch k rou 6 theta 21
-const int PNUM = 6+XNUM;    //para num
+const int CNUM = 7;
+//para: mur mub cl ch k rou v 7 theta 21
+const int PNUM = CNUM+XNUM;    //para num 28
 const int IN = 10;       //industry num
 const int NN = 24;     //Z num
 const int HH = 100;
@@ -179,16 +180,20 @@ double objective(double *para){
 	for(int i=0;i<N;i++){
 		double xx = 0;
 		for(int j=0;j<XNUM;j++){
-			xx += para[6+j]*X[i][j];
+			xx += para[CNUM+j]*X[i][j];
 		}
 		sum = 0;
+		double temp[RNUM];
+		for(int j=0;j<RNUM;j++){
+			temp[j] = exp(-(xx + rand2[i][j]));  //the same rand2 only?
+		}
 		if(color[i]==0){
 			double ch[RNUM],cl[RNUM],dh[RNUM],dl[RNUM],paih,pail;
 			double sum_paih = 0,sum_pail = 0;
 			for(int j=0;j<RNUM;j++){
-				double temp = exp(-(xx+rand2[i][j]));
-				ch[j] = para[3]*temp;
-				cl[j] = para[2]*temp;
+				//double temp = exp(-(xx+rand2[i][j]));
+				ch[j] = para[3]*temp[j];
+				cl[j] = para[2]*temp[j];
 				dh[j] = para[4]*pow(ch[j]/rho,rhoy);
 				dl[j] = para[4]*pow(cl[j]/rho,rhoy);
 				paih = t[i]*(ch[j]/rho - ch[j])*dh[j]*qijh_mean[i] + (1-t[i])*(ch[j]/rho - ch[j])*dh[j]*qij_mean[i];
@@ -213,8 +218,8 @@ double objective(double *para){
 		}
 		if(color[i]==1){        //HIGH
 			for(int j=0;j<RNUM;j++){
-				double temp = exp(-(xx+rand2[i][j]));
-				double ch = para[3]*temp;
+				//double temp = exp(-(xx+rand2[i][j]));
+				double ch = para[3]*temp[j];
 				double h = ch/rho;
 				double dh = para[4]*pow(h,rhoy);
 				rev[i][j] = dh*h*qijh_mean[i];
@@ -225,8 +230,8 @@ double objective(double *para){
 		}
 		if(color[i]==2){//low
 			for(int j=0;j<RNUM;j++){
-				double temp = exp(-(xx+rand2[i][j]));
-				double cl = para[2]*temp;
+				//double temp = exp(-(xx+rand2[i][j]));
+				double cl = para[2]*temp[j];
 				double l = cl/rho;
 				double dl = para[4]*pow(l,rhoy);
 				rev[i][j] = dl*l*qijl_mean[i];
