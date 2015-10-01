@@ -93,7 +93,7 @@ int main(int argc,char**argv){
 			fout_Z<<X[i][j]<<" ";
 		}
 		fout_Z<<pow(X[i][2],2)<<" "<<pow(X[i][3],2)<<" ";
-		fout_Z<<wave[N][0]<<" "<<wave[N][1]<<" "<<q0[industry[i]]<<" "<<1<<endl;;
+		fout_Z<<wave[i][0]<<" "<<wave[i][1]<<" "<<q0[industry[i]]<<" "<<1<<endl;;
 	}//for Z
 	fout_Z.close();
 	cout<<"Y done"<<endl;

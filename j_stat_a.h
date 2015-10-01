@@ -30,7 +30,7 @@ double rand1[2][RNUM],rand2[N][RNUM];
 double obj[2*P];
 double mp,vp,best;
 double qij_mean[N],qijh_mean[N],qijl_mean[N];
-
+double paras[PNUM];
 double q0[N],W[2*NN][2*NN],rev[N][RNUM];
 double F[N][RNUM],G[N][RNUM];
 double q_bar[N][RNUM],q_ijr[N][RNUM],q_ijb[N][RNUM];
@@ -61,29 +61,25 @@ double normcdf(double z){
 //***************************readdata**************************
 void readData(){
 	cout<<"GA() in"<<endl;
-	if(FLAG == 0){
-		for(int i = 0;i < 2*NN;i ++){
-			for(int j = 0;j < 2*NN;j ++){
-				W[i][j] = (i==j)?1:0;
-			}
+	ifstream fw("SS_a.txt");
+	for(int i = 0;i < 2*NN;i ++){
+		for(int j = 0;j < 2*NN;j ++){
+			fw>>W[i][j];
 		}
-	}else{
-		ifstream fw("WW");
-		for(int i = 0;i < 2*NN;i ++){
-			for(int j = 0;j < 2*NN;j ++){
-				fw>>W[i][j];
-			}
-		}//for
-		fw.close();
-	}
+	}//for
+	fw.close();
 	//mur mub cl ch k rho east middle dindus1~9 lnasset lnyear
 	//regsoe regforeign regprivate regcollective reglegal lna2 lny2 1
 	//-3 10
-	ifstream fin_range("para_range.txt");
+	ifstream fin_para("paras.txt");
+	for(int i=0;i<PNUM;i++){
+		fin_para>>paras[i];
+	}
+/*	ifstream fin_range("para_range.txt");
 	for(int i=0;i<PNUM;i++){
 		fin_range>>para_range[i][0]>>para_range[i][1];
-	}
-	fin_range.close();
+	}*/
+	//fin_range.close();
 	// range above
 	mp = 1;vp = 0.8;best = 0.0;
 	//ifstream fin_x("para_x.txt");    //para x
@@ -96,6 +92,9 @@ void readData(){
 		for(int j = 0;j < NN;j ++){
 			fin_z>>Z[i][j];
 		}
+		if(Z[i][20]!=0){
+			cout<<Z[i][20]<<endl;
+		}
 		fin_y>>Y[i][0]>>Y[i][1]>>color[i]>>indu[i]>>q0[i]>>t[i];
 	}//for
 	//fin_x.close();
@@ -103,6 +102,7 @@ void readData(){
 	fin_z.close();
 	//读取随机正态，每次一致
 	ifstream frand("randnums");
+	ofstream rr("rrr");
 	for(int i=0;i<2;i++){
 		for(int j=0;j<RNUM;j++){
 			frand>>rand1[i][j];
@@ -111,8 +111,14 @@ void readData(){
 	for(int i=0;i<N;i++){
 		for(int j=0;j<RNUM;j++){
 			frand>>rand2[i][j];
+			rr<<rand2[i][j]<<" ";
+			if(abs(rand2[i][j])>=10){
+				cout<<i<<" "<<j<<endl;
+			}
 		}
+		rr<<endl;
 	}
+	rr.close();
 	frand.close();
 	cout<<"GA() out"<<endl;
 }
@@ -145,10 +151,6 @@ void getS(double *para){
 	double rhoy = 1.0/(rho - 1.0);
 	double revmean[N][2];
 	for(int i=0;i<N;i++){
-		double xx = 0;
-		for(int j=0;j<XNUM;j++){
-			xx += para[CNUM+j]*X[i][j];
-		}
 		sum = 0;
 		double temp[RNUM];
 		for(int j=0;j<RNUM;j++){
@@ -213,7 +215,7 @@ void getS(double *para){
 			sums[indu[j]] += rev[j][i];
 		}
 		for(int j=0;j<N;j++){
-			TotalR[j] += rev[j][i]/sums[insu[j]]; 
+			TotalR[j] += rev[j][i]/sums[indu[j]]; 
 		}
 	}//for RNUM
 	for(int i=0;i<N;i++){
@@ -237,6 +239,11 @@ void getS(double *para){
 			}
 		}	
 	}
+	ofstream ff("20.txt");
+	for(int i=0;i<N;i++){
+		ff<<m[i][20]<<endl;
+	}
+	ff.close();
 	double S[2*NN][2*NN];
 	for(int i=0;i<2*NN;i++){
 		for(int j=0;j<2*NN;j++){
@@ -275,7 +282,7 @@ double jstat_a(double *para){
 		for(int j=0;j<RNUM;j++){
 			sum += pow(q_bar[i][j],rhox);
 			sum1 += pow(q_ijr[i][j],rhox);
-			sum2 += pow(q_ijb[i]][j],rhox);
+			sum2 += pow(q_ijb[i][j],rhox);
 		}
 		qij_mean[i] = sum/RNUM;
 		qijh_mean[i] = sum1/RNUM;
@@ -285,10 +292,6 @@ double jstat_a(double *para){
 	double rhoy = 1.0/(rho - 1.0);
 	double revmean[N][2];
 	for(int i=0;i<N;i++){
-		double xx = 0;
-		for(int j=0;j<XNUM;j++){
-			xx += para[CNUM+j]*X[i][j];
-		}
 		sum = 0;
 		double temp[RNUM];
 		for(int j=0;j<RNUM;j++){
@@ -353,7 +356,7 @@ double jstat_a(double *para){
 			sums[indu[j]] += rev[j][i];
 		}
 		for(int j=0;j<N;j++){
-			TotalR[j] += rev[j][i]/sums[insu[j]]; 
+			TotalR[j] += rev[j][i]/sums[indu[j]]; 
 		}
 	}//for RNUM
 	for(int i=0;i<N;i++){
