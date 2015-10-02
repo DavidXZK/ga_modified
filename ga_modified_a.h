@@ -29,7 +29,7 @@ double t[N];     // parameter t 抽检比例
 double rand1[2][RNUM],rand2[N][RNUM];
 double obj[2*P];
 double mp,vp,best;
-double qij_mean[N],qijh_mean[N],qijl_mean[N];
+double qij_mean[IN],qijh_mean[IN],qijl_mean[IN];
 double para_range[PNUM][2];
 double paras[P][PNUM];
 double paras2[2*P][PNUM];
