@@ -65,6 +65,11 @@ int main(int argc,char**argv){
 		t[i] = (double)(rednum[i]+blacknum[i])/(double)insnum[i];
 		q0[i] = (double)rednum[i]/(rednum[i]+blacknum[i]);
 	}
+	ofstream fout_q0("para_q0.txt");
+	for(int i=0;i<10;i++){
+		fout_q0<<q0[i]<<endl;
+	}
+	fout_q0.close();
 	//para X:east middle lnasset lnyear regsoe regforeign regprivate regcollective reglegal dindus1~dindus9
 	//go to fileX:east middle dis1~9 lnasset lnyear regsoe~reglegal lnasset2 lnyear2 1
 	ofstream fout_X("para_x.txt");
@@ -93,7 +98,7 @@ int main(int argc,char**argv){
 			fout_Z<<X[i][j]<<" ";
 		}
 		fout_Z<<pow(X[i][2],2)<<" "<<pow(X[i][3],2)<<" ";
-		fout_Z<<wave[i][0]<<" "<<wave[i][1]<<" "<<q0[industry[i]]<<" "<<1<<endl;;
+		fout_Z<<wave[i][0]<<" "<<wave[i][1]<<" "<<q0[industry[i]]<<" "<<1<<endl;
 	}//for Z
 	fout_Z.close();
 	cout<<"Y done"<<endl;
