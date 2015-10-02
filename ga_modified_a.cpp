@@ -14,6 +14,7 @@ int main(int argc,char**argv){
 		double r1 = (double)rand()/RAND_MAX;
 		double r2 = (double)rand()/RAND_MAX;
 		if(r1 == r2) cout<<"random error"<<endl;
+		return -1;
 	}//assert
 	double **sendbuff = NULL;
 	double *obj_mpi = NULL;
