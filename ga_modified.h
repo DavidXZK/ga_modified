@@ -28,19 +28,19 @@ double t[N];     // parameter t 抽检比例
 double rand1[2][RNUM],rand2[N][RNUM];
 double obj[2*P];
 double mp,vp,best;
-double qij_mean[N],qijh_mean[N],qijl_mean[N];
+double qij_mean[IN],qijh_mean[IN],qijl_mean[IN];
 double para_range[PNUM][2];
 double paras[P][PNUM];
 double paras2[2*P][PNUM];
 int codeX[P][PNUM][M];
 int codeX1[P][PNUM][M];
 int codeX2[P][PNUM][M];
-
+double qr0[IN];
 double q0[N],W[2*NN][2*NN],rev[N][RNUM];
-double F[N][RNUM],G[N][RNUM];
-double q_bar[N][RNUM],q_ijr[N][RNUM],q_ijb[N][RNUM];
+double F[IN][RNUM],G[IN][RNUM];
+double q_bar[IN][RNUM],q_ijr[IN][RNUM],q_ijb[IN][RNUM];
 
-ofstream fout("result_ga_modified.txt");
+ofstream fout("result_ga_modified_b.txt");
 
 //************************ normal distribution function*******************
 double normal(double z){
@@ -117,6 +117,11 @@ void readData(){
 		fin_range>>para_range[i][0]>>para_range[i][1];
 	}
 	fin_range.close();
+	ifstream fin_q0("../para_q0.txt");
+	for(int i=0;i<IN;i++){
+		fin>>qr0[i];
+	}
+	fin_q0.close();
 	// range above
 	mp = 1;vp = 0.8;best = 0.0;
 	ifstream fin_x("para_x.txt");    //para x
@@ -151,11 +156,11 @@ void readData(){
 }
 //***************************obj*******************************
 double objective(double *para){
-	for(int i=0;i<N;i++){
+	for(int i=0;i<IN;i++){
 		for(int j=0;j<RNUM;j++){
 			F[i][j] = normcdf(rand1[0][j] + para[0]);
 			G[i][j] = normcdf(rand1[1][j] + para[1]);
-			q_bar[i][j] = (F[i][j]*q0[i])/(F[i][j]*q0[i] + G[i][j]*(1-q0[i]));
+			q_bar[i][j] = (F[i][j]*qr0[i])/(F[i][j]*qr0[i] + G[i][j]*(1-qr0[i]));
 			q_ijr[i][j] = F[i][j] + q_bar[i][j]*(1-F[i][j]);
 			q_ijb[i][j] = q_bar[i][j]*(1-G[i][j]);
 		}
@@ -163,7 +168,7 @@ double objective(double *para){
 	double rho = para[5];
 	double rhox = rho/(1.0 - rho);
 	double sum,sum1,sum2;
-	for(int i=0;i<N;i++){
+	for(int i=0;i<IN;i++){
 		sum = 0,sum1 = 0,sum2 = 0;
 		for(int j=0;j<RNUM;j++){
 			sum += pow(q_bar[i][j],rhox);
@@ -196,20 +201,20 @@ double objective(double *para){
 				cl[j] = para[2]*temp[j];
 				dh[j] = para[4]*pow(ch[j]/rho,rhoy);
 				dl[j] = para[4]*pow(cl[j]/rho,rhoy);
-				paih = t[i]*(ch[j]/rho - ch[j])*dh[j]*qijh_mean[i] + (1-t[i])*(ch[j]/rho - ch[j])*dh[j]*qij_mean[i];
-				pail = t[i]*(cl[j]/rho - cl[j])*dl[j]*qijl_mean[i] + (1-t[i])*(cl[j]/rho - cl[j])*dl[j]*qij_mean[i];
+				paih = t[i]*(ch[j]/rho - ch[j])*dh[j]*qijh_mean[indu[i]] + (1-t[i])*(ch[j]/rho - ch[j])*dh[j]*qij_mean[indu[i]];
+				pail = t[i]*(cl[j]/rho - cl[j])*dl[j]*qijl_mean[indu[i]] + (1-t[i])*(cl[j]/rho - cl[j])*dl[j]*qij_mean[indu[i]];
 				sum_paih += paih;
 				sum_pail += pail;
 			}
 			if(sum_paih>sum_pail){
 				for(int j=0;j<RNUM;j++){
-					rev[i][j] = dh[j]*ch[j]/rho*qijh_mean[i];
+					rev[i][j] = dh[j]*ch[j]/rho*qijh_mean[indu[i]];
 					sum += rev[i][j];
 				}
 			}
 			else{
 				for(int j=0;j<RNUM;j++){
-					rev[i][j] = dl[j]*cl[j]/rho*qijl_mean[i];
+					rev[i][j] = dl[j]*cl[j]/rho*qijl_mean[indu[i]];
 					sum += rev[i][j];
 				}
 			}
@@ -222,7 +227,7 @@ double objective(double *para){
 				double ch = para[3]*temp[j];
 				double h = ch/rho;
 				double dh = para[4]*pow(h,rhoy);
-				rev[i][j] = dh*h*qijh_mean[i];
+				rev[i][j] = dh*h*qijh_mean[indu[i]];
 				sum += rev[i][j];
 			}
 			revmean[i][0] = sum/RNUM;
@@ -234,7 +239,7 @@ double objective(double *para){
 				double cl = para[2]*temp[j];
 				double l = cl/rho;
 				double dl = para[4]*pow(l,rhoy);
-				rev[i][j] = dl*l*qijl_mean[i];
+				rev[i][j] = dl*l*qijl_mean[indu[i]];
 				sum += rev[i][j];
 			}
 			revmean[i][0] = sum/RNUM;
@@ -314,7 +319,7 @@ void popinit(){
 		}
 	}
 	//the left 21(X)
-	ifstream fin("para_initial.txt");
+	ifstream fin("../para_initial.txt");
 	for(int j=CNUM;j<PNUM;j++){
 		fin>>paras[0][j];
 	}
