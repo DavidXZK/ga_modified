@@ -61,7 +61,7 @@ double normcdf(double z){
 //***************************readdata**************************
 void readData(){
 	cout<<"GA() in"<<endl;
-	ifstream fw("SS_a.txt");
+	ifstream fw("WW");
 	for(int i = 0;i < 2*NN;i ++){
 		for(int j = 0;j < 2*NN;j ++){
 			fw>>W[i][j];
@@ -92,10 +92,8 @@ void readData(){
 		for(int j = 0;j < NN;j ++){
 			fin_z>>Z[i][j];
 		}
-		if(Z[i][20]!=0){
-			cout<<Z[i][20]<<endl;
-		}
 		fin_y>>Y[i][0]>>Y[i][1]>>color[i]>>indu[i]>>q0[i]>>t[i];
+		Y[i][0] /=100;
 	}//for
 	//fin_x.close();
 	fin_y.close();
@@ -239,11 +237,6 @@ void getS(double *para){
 			}
 		}	
 	}
-	ofstream ff("20.txt");
-	for(int i=0;i<N;i++){
-		ff<<m[i][20]<<endl;
-	}
-	ff.close();
 	double S[2*NN][2*NN];
 	for(int i=0;i<2*NN;i++){
 		for(int j=0;j<2*NN;j++){
@@ -254,6 +247,7 @@ void getS(double *para){
 			S[i][j] = ss/(double)N;
 		}
 	}
+	cout<<" @"<<S[0][0]<<"@"<<endl;
 	ofstream fout("SS_a.txt");
 	for(int i=0;i<2*NN;i++){
 		for(int j=0;j<2*NN;j++){

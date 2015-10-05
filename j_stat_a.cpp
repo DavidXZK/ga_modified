@@ -2,6 +2,6 @@
 
 int main(int argc,char** argv){
 	readData();
-	getS(paras);
+	cout<<jstat_a(paras);
 	return 0;
 }
