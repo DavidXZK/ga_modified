@@ -10,7 +10,8 @@ const int N = 3189;     //num of sample
 const int RNUM = 250;   //random num
 const int XNUM = 21;    //theta para num
 //para: mur mub cl ch k rou 6 theta 21
-const int PNUM = 6+XNUM;    //para num
+const int CNUM = 6;
+const int PNUM = CNUM+XNUM;    //para num
 const int IN = 10;       //industry num
 const int NN = 24;     //Z num
 const int FLAG = 0;
@@ -20,11 +21,11 @@ double X[N][XNUM];  //X变量
 double Y[N][2],Z[N][NN];
 double m[N][2*NN];
 double t[N];     // parameter t 抽检比例
-double rand1[2*IN][RNUM],rand2[N][RNUM];
-double qij_mean[N],qijh_mean[N],qijl_mean[N];
+double rand1[2][RNUM],rand2[N][RNUM];
+double qij_mean[IN],qijh_mean[IN],qijl_mean[IN];
 double q0[N],W[2*NN][2*NN],rev[N][RNUM];
 double F[IN][RNUM],G[IN][RNUM];
-double q_bar[IN][RNUM],q_ijr[IN][RNUM],q_ijb[IN][RNUM];
+double q_bar[IN][RNUM],q_ijr[IN][RNUM],q_ijb[IN][RNUM],qr0[IN];
 double para[PNUM];
 //************************ normal distribution function*******************
 double normal(double z){
@@ -50,21 +51,18 @@ double normcdf(double z){
 //***************************readdata**************************
 void readData(){
 	cout<<"jstat() in"<<endl;
-	if(FLAG == 0){
-		for(int i = 0;i < 2*NN;i ++){
-			for(int j = 0;j < 2*NN;j ++){
-				W[i][j] = (i==j)?1:0;
-			}
+	ifstream fw("WW");
+	for(int i = 0;i < 2*NN;i ++){
+		for(int j = 0;j < 2*NN;j ++){
+			fw>>W[i][j];
 		}
-	}else{
-		ifstream fw("WW");
-		for(int i = 0;i < 2*NN;i ++){
-			for(int j = 0;j < 2*NN;j ++){
-				fw>>W[i][j];
-			}
-		}//for
-		fw.close();
+	}//for
+	fw.close();
+	ifstream fin_q0("para_q0.txt");
+	for(int i=0;i<IN;i++){
+		fin_q0>>qr0[i];
 	}
+	fin_q0.close();
 	ifstream fin_x("para_x.txt");    //para x
 	ifstream fin_y("para_y.txt");   //para lny0 y1 color industry q0 t
 	ifstream fin_z("para_z.txt");   //para x + wave1 + wave2 + q0 + 1
@@ -82,7 +80,7 @@ void readData(){
 	fin_z.close();
 	//读取随机正态，每次一致
 	ifstream frand("randnums");
-	for(int i=0;i<2*IN;i++){
+	for(int i=0;i<2;i++){
 		for(int j=0;j<RNUM;j++){
 			frand>>rand1[i][j];
 		}
@@ -103,9 +101,9 @@ void readData(){
 double getS(double *para){
 	for(int i=0;i<IN;i++){
 		for(int j=0;j<RNUM;j++){
-			F[i][j] = normcdf(rand1[i][j] + para[0]);
-			G[i][j] = normcdf(rand1[IN+i][j] + para[1]);
-			q_bar[i][j] = (F[i][j]*q0[i])/(F[i][j]*q0[i] + G[i][j]*(1-q0[i]));
+			F[i][j] = normcdf(rand1[0][j] + para[0]);
+			G[i][j] = normcdf(rand1[1][j] + para[1]);
+			q_bar[i][j] = (F[i][j]*qr0[i])/(F[i][j]*qr0[i] + G[i][j]*(1-qr0[i]));
 			q_ijr[i][j] = F[i][j] + q_bar[i][j]*(1-F[i][j]);
 			q_ijb[i][j] = q_bar[i][j]*(1-G[i][j]);
 		}
@@ -113,12 +111,12 @@ double getS(double *para){
 	double rho = para[5];
 	double rhox = rho/(1.0 - rho);
 	double sum,sum1,sum2;
-	for(int i=0;i<N;i++){
+	for(int i=0;i<IN;i++){
 		sum = 0,sum1 = 0,sum2 = 0;
 		for(int j=0;j<RNUM;j++){
-			sum += pow(q_bar[indu[i]][j],rhox);
-			sum1 += pow(q_ijr[indu[i]][j],rhox);
-			sum2 += pow(q_ijb[indu[i]][j],rhox);
+			sum += pow(q_bar[i][j],rhox);
+			sum1 += pow(q_ijr[i][j],rhox);
+			sum2 += pow(q_ijb[i][j],rhox);
 		}
 		qij_mean[i] = sum/RNUM;
 		qijh_mean[i] = sum1/RNUM;
@@ -130,7 +128,7 @@ double getS(double *para){
 	for(int i=0;i<N;i++){
 		double xx = 0;
 		for(int j=0;j<XNUM;j++){
-			xx += para[6+j]*X[i][j];
+			xx += para[CNUM+j]*X[i][j];
 		}
 		sum = 0;
 		if(color[i]==0){
@@ -142,20 +140,20 @@ double getS(double *para){
 				cl[j] = para[2]*temp;
 				dh[j] = para[4]*pow(ch[j]/rho,rhoy);
 				dl[j] = para[4]*pow(cl[j]/rho,rhoy);
-				paih = t[i]*(ch[j]/rho - ch[j])*dh[j]*qijh_mean[i] + (1-t[i])*(ch[j]/rho - ch[j])*dh[j]*qij_mean[i];
-				pail = t[i]*(cl[j]/rho - cl[j])*dl[j]*qijl_mean[i] + (1-t[i])*(cl[j]/rho - cl[j])*dl[j]*qij_mean[i];
+				paih = t[i]*(ch[j]/rho - ch[j])*dh[j]*qijh_mean[indu[i]] + (1-t[i])*(ch[j]/rho - ch[j])*dh[j]*qij_mean[indu[i]];
+				pail = t[i]*(cl[j]/rho - cl[j])*dl[j]*qijl_mean[indu[i]] + (1-t[i])*(cl[j]/rho - cl[j])*dl[j]*qij_mean[indu[i]];
 				sum_paih += paih;
 				sum_pail += pail;
 			}
 			if(sum_paih>sum_pail){
 				for(int j=0;j<RNUM;j++){
-					rev[i][j] = dh[j]*ch[j]/rho*qijh_mean[i];
+					rev[i][j] = dh[j]*ch[j]/rho*qijh_mean[indu[i]];
 					sum += rev[i][j];
 				}
 			}
 			else{
 				for(int j=0;j<RNUM;j++){
-					rev[i][j] = dl[j]*cl[j]/rho*qijl_mean[i];
+					rev[i][j] = dl[j]*cl[j]/rho*qijl_mean[indu[i]];
 					sum += rev[i][j];
 				}
 			}
@@ -168,7 +166,7 @@ double getS(double *para){
 				double ch = para[3]*temp;
 				double h = ch/rho;
 				double dh = para[4]*pow(h,rhoy);
-				rev[i][j] = dh*h*qijh_mean[i];
+				rev[i][j] = dh*h*qijh_mean[indu[i]];
 				sum += rev[i][j];
 			}
 			revmean[i][0] = sum/RNUM;
@@ -180,7 +178,7 @@ double getS(double *para){
 				double cl = para[2]*temp;
 				double l = cl/rho;
 				double dl = para[4]*pow(l,rhoy);
-				rev[i][j] = dl*l*qijl_mean[i];
+				rev[i][j] = dl*l*qijl_mean[indu[i]];
 				sum += rev[i][j];
 			}
 			revmean[i][0] = sum/RNUM;
@@ -195,7 +193,7 @@ double getS(double *para){
 			sums[indu[j]] += rev[j][i];
 		}
 		for(int j=0;j<N;j++){
-			TotalR[j] += rev[j][i]/sums[insu[j]]; 
+			TotalR[j] += rev[j][i]/sums[indu[j]]; 
 		}
 	}//for RNUM
 	for(int i=0;i<N;i++){
@@ -242,9 +240,9 @@ double getS(double *para){
 double jstat(double *para){
 	for(int i=0;i<IN;i++){
 		for(int j=0;j<RNUM;j++){
-			F[i][j] = normcdf(rand1[i][j] + para[0]);
-			G[i][j] = normcdf(rand1[IN+i][j] + para[1]);
-			q_bar[i][j] = (F[i][j]*q0[i])/(F[i][j]*q0[i] + G[i][j]*(1-q0[i]));
+			F[i][j] = normcdf(rand1[0][j] + para[0]);
+			G[i][j] = normcdf(rand1[1][j] + para[1]);
+			q_bar[i][j] = (F[i][j]*qr0[i])/(F[i][j]*qr0[i] + G[i][j]*(1-qr0[i]));
 			q_ijr[i][j] = F[i][j] + q_bar[i][j]*(1-F[i][j]);
 			q_ijb[i][j] = q_bar[i][j]*(1-G[i][j]);
 		}
@@ -252,12 +250,12 @@ double jstat(double *para){
 	double rho = para[5];
 	double rhox = rho/(1.0 - rho);
 	double sum,sum1,sum2;
-	for(int i=0;i<N;i++){
+	for(int i=0;i<IN;i++){
 		sum = 0,sum1 = 0,sum2 = 0;
 		for(int j=0;j<RNUM;j++){
-			sum += pow(q_bar[indu[i]][j],rhox);
-			sum1 += pow(q_ijr[indu[i]][j],rhox);
-			sum2 += pow(q_ijb[indu[i]][j],rhox);
+			sum += pow(q_bar[i][j],rhox);
+			sum1 += pow(q_ijr[i][j],rhox);
+			sum2 += pow(q_ijb[i][j],rhox);
 		}
 		qij_mean[i] = sum/RNUM;
 		qijh_mean[i] = sum1/RNUM;
@@ -269,7 +267,7 @@ double jstat(double *para){
 	for(int i=0;i<N;i++){
 		double xx = 0;
 		for(int j=0;j<XNUM;j++){
-			xx += para[6+j]*X[i][j];
+			xx += para[CNUM+j]*X[i][j];
 		}
 		sum = 0;
 		if(color[i]==0){
@@ -281,20 +279,20 @@ double jstat(double *para){
 				cl[j] = para[2]*temp;
 				dh[j] = para[4]*pow(ch[j]/rho,rhoy);
 				dl[j] = para[4]*pow(cl[j]/rho,rhoy);
-				paih = t[i]*(ch[j]/rho - ch[j])*dh[j]*qijh_mean[i] + (1-t[i])*(ch[j]/rho - ch[j])*dh[j]*qij_mean[i];
-				pail = t[i]*(cl[j]/rho - cl[j])*dl[j]*qijl_mean[i] + (1-t[i])*(cl[j]/rho - cl[j])*dl[j]*qij_mean[i];
+				paih = t[i]*(ch[j]/rho - ch[j])*dh[j]*qijh_mean[indu[i]] + (1-t[i])*(ch[j]/rho - ch[j])*dh[j]*qij_mean[indu[i]];
+				pail = t[i]*(cl[j]/rho - cl[j])*dl[j]*qijl_mean[indu[i]] + (1-t[i])*(cl[j]/rho - cl[j])*dl[j]*qij_mean[indu[i]];
 				sum_paih += paih;
 				sum_pail += pail;
 			}
 			if(sum_paih>sum_pail){
 				for(int j=0;j<RNUM;j++){
-					rev[i][j] = dh[j]*ch[j]/rho*qijh_mean[i];
+					rev[i][j] = dh[j]*ch[j]/rho*qijh_mean[indu[i]];
 					sum += rev[i][j];
 				}
 			}
 			else{
 				for(int j=0;j<RNUM;j++){
-					rev[i][j] = dl[j]*cl[j]/rho*qijl_mean[i];
+					rev[i][j] = dl[j]*cl[j]/rho*qijl_mean[indu[i]];
 					sum += rev[i][j];
 				}
 			}
@@ -307,7 +305,7 @@ double jstat(double *para){
 				double ch = para[3]*temp;
 				double h = ch/rho;
 				double dh = para[4]*pow(h,rhoy);
-				rev[i][j] = dh*h*qijh_mean[i];
+				rev[i][j] = dh*h*qijh_mean[indu[i]];
 				sum += rev[i][j];
 			}
 			revmean[i][0] = sum/RNUM;
@@ -319,7 +317,7 @@ double jstat(double *para){
 				double cl = para[2]*temp;
 				double l = cl/rho;
 				double dl = para[4]*pow(l,rhoy);
-				rev[i][j] = dl*l*qijl_mean[i];
+				rev[i][j] = dl*l*qijl_mean[indu[i]];
 				sum += rev[i][j];
 			}
 			revmean[i][0] = sum/RNUM;
@@ -334,7 +332,7 @@ double jstat(double *para){
 			sums[indu[j]] += rev[j][i];
 		}
 		for(int j=0;j<N;j++){
-			TotalR[j] += rev[j][i]/sums[insu[j]]; 
+			TotalR[j] += rev[j][i]/sums[indu[j]]; 
 		}
 	}//for RNUM
 	for(int i=0;i<N;i++){
