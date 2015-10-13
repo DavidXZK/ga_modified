@@ -12,7 +12,7 @@ using namespace std;
 const double PI = 3.1415926;
 const int N = 3189;     //num of sample
 const int RNUM = 250;   //random num
-const int CNUM = 10;
+const int CNUM = 6 + 4; //6 p a1 a2 b1 b2
 const int XNUM = 0;    //theta para num
 //para: mur mub cl ch k rou 6 theta 21
 const int PNUM = CNUM+XNUM;    //para num
@@ -43,7 +43,7 @@ double q0[N],W[2*NN][2*NN],rev[N][RNUM];
 double F[N][RNUM],G[N][RNUM];
 double q_bar[N][RNUM],q_ijr[N][RNUM],q_ijb[N][RNUM];
 
-ofstream fout("result_ga_modified.txt");
+ofstream fout("result/result_ga_modified_c.txt");
 
 //************************ normal distribution function*******************
 double normal(double z){
@@ -115,7 +115,7 @@ void readData(){
 	//mur mub cl ch k rho east middle dindus1~9 lnasset lnyear
 	//regsoe regforeign regprivate regcollective reglegal lna2 lny2 1
 	//-3 10
-	ifstream fin_range("para_range.txt");
+	ifstream fin_range("para_range_c.txt");
 	for(int i=0;i<PNUM;i++){
 		fin_range>>para_range[i][0]>>para_range[i][1];
 	}
@@ -168,8 +168,8 @@ void quality_change(double *para){
 	for(int i=0;i<N;i++){
 		for(int j=0;j<RNUM;j++){
 			//2+9 lnasset lnyear
-			F[i][j] = normcdf(rand1[0][j] + para[0] + para[6]*Z[11] + para[7]*Z[12]);
-			G[i][j] = normcdf(rand1[1][j] + para[1] + para[8]*Z[13] + para[9]*Z[14]);
+			F[i][j] = normcdf(rand1[0][j] + para[0] + para[6]*Z[i][11] + para[7]*Z[i][12]);
+			G[i][j] = normcdf(rand1[1][j] + para[1] + para[8]*Z[i][11] + para[9]*Z[i][12]);
 			q_bar[i][j] = (F[i][j]*q0[i])/(F[i][j]*q0[i] + G[i][j]*(1-q0[i]));
 			q_ijr[i][j] = F[i][j] + q_bar[i][j]*(1-F[i][j]);
 			q_ijb[i][j] = q_bar[i][j]*(1-G[i][j]);
@@ -254,23 +254,13 @@ double objective(double *para){
 			revmean[i][0] = sum/RNUM;
 		}//if
 	}//for
-	double TotalR[N];
-	memset(TotalR,0,sizeof(double)*N);
-	for(int i=0;i<RNUM;i++){
-		double sums[IN];
-		memset(sums,0,sizeof(sums));
-		for(int j=0;j<N;j++){
-			sums[indu[j]] += rev[j][i];
-		}
-		for(int j=0;j<N;j++){
-			TotalR[j] += rev[j][i]/sums[indu[j]]; 
-		}
-	}//for RNUM
+	double sums[IN];
+	memset(sums,0,sizeof(sums));
 	for(int i=0;i<N;i++){
-		if(TotalR[i]<0){
-			cout<<i<<"TotalR = "<<TotalR[i]<<endl;
-		}
-		revmean[i][1] = TotalR[i]/RNUM;
+		sums[indu[i]] += revmean[i][0];
+	}
+	for(int i=0;i<N;i++){
+		revmean[i][1] = revmean[i][0] / sums[indu[i]];
 	}
 	// now we get phat == revmean
 	for(int i=0;i<N;i++){
