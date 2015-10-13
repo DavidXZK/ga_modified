@@ -3,7 +3,7 @@
 
 int main(){
 	readData();
-	Gauss(WW,WW_hat);
+	//Gauss(WW,WW_hat);
 	check();
 	return 0;
 }

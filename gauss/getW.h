@@ -17,6 +17,13 @@ void readData(){
 		}
 	}//for
 	fin.close();
+	ifstream fins("SS");
+	for(int i=0;i<Q;i++){
+		for(int j=0;j<Q;j++){
+			fins>>WW_hat[i][j];
+		}
+	}//for
+	fins.close();
 }
 
 void check(){
