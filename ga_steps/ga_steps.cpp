@@ -45,6 +45,7 @@ int main(int argc,char**argv){
 		recvs = new double[ll*PNUM];
 		obj_slaves = new double[ll];
 	}
+	//malloc memory
 	for(int i=0;i<ntime;i++){
 		readW();
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -80,66 +81,84 @@ int main(int argc,char**argv){
 				obj_slaves[i] = objective(temps);
 			}
 			MPI_Send(obj_slaves,ll,MPI_DOUBLE,0,98,MPI_COMM_WORLD);
+		}//else myid !=0 first part compute obj
+
+		//*******************************************************************
+
+		for(int j = 0;j < times;j ++){
+			if(myid==0){
+				mutation();
+				variation();
+				decoding();
+				for(int x = 1;x<numprocs;x++){
+					for(int y=0;y<ll;y++){
+						for(int k=0;k<PNUM;k++){
+							sendbuff[x][y*PNUM+k] = paras2[P+(x-1)*ll+y][k];
+						}
+					}
+				}//for
+				for(int x=1;x<numprocs;x++){
+					MPI_Send(sendbuff[x],ll*PNUM,MPI_DOUBLE,x,97,MPI_COMM_WORLD);
+				}
+			}else{
+				slaverecv = new double[ll*PNUM];
+				obj_slave = new double[ll];
+				MPI_Recv(slaverecv,ll*PNUM,MPI_DOUBLE,0,97,MPI_COMM_WORLD,&status);
+				for(int i=0;i<ll;i++){
+					double temps[PNUM];
+					for(int j=0;j<PNUM;j++){
+						temps[j] = slaverecv[i*PNUM+j];
+					}
+					obj_slave[i] = objective(temps);
+				}
+				MPI_Send(obj_slave,ll,MPI_DOUBLE,0,96,MPI_COMM_WORLD);
+			}
+			if(myid==0){
+				for(int x=1;x<numprocs;x++){
+					MPI_Recv(obj_mpi,ll,MPI_DOUBLE,x,96,MPI_COMM_WORLD,&status);
+					for(int y=0;y<ll;y++){
+						obj[P+ll*(x-1)+y] = obj_mpi[y];
+					}
+				}
+				choose();
+				cout<<j<<" best = "<<best<<endl;
+				fout<<j<<" "<<best<<" ";
+				for(int i=0;i<PNUM;i++){
+					fout<<paras[0][i]<<" ";
+				}
+				fout<<endl;
+				if(best<=beta){
+					return 0;
+				}
+			}//if
+
+		}//times
+		if(myid == 0){
+			fout<<"*****************************************************"<<endl;
+			for(int j=0;j<Q;j++){
+				for(int k=0;k<Q;k++){
+					fout<<W[i][j]<<" ";
+				}
+				fout<<endl;
+			}
+			fout<<"*****************************************************"<<endl;
+			getS(paras[0]);
+			if(!Gauss(Ws,W)){
+				cout<<"wrong"<<endl;
+				return -1;
+			}
+			ofstream foutw("WW");
+			for(int j=0;j<Q;j++){
+				for(int k=0;k<Q;k++){
+					foutw<<W[j][k]<<" ";
+				}
+				foutw<<endl;
+			}
+			foutw.close();
 		}
 
 	}//for ntime
 	
-	if(myid==0){
-		for(int x=1;x<numprocs;x++){
-			MPI_Recv(obj_mpis,ll,MPI_DOUBLE,x,98,MPI_COMM_WORLD,&status);
-			for(int y=0;y<ll;y++){
-				obj[ll*(x-1)+y] = obj_mpis[y];
-				//cout<<"obj "<<P+ll*(x-1)+y<<" "<<obj[P+ll*(x-1)+y]<<endl;
-			}
-		}
-	}//if
-	for(int j=0;j<times;j++){
-		if(myid==0){
-			mutation();
-			variation();
-			decoding();
-			for(int x = 1;x<numprocs;x++){
-				for(int y=0;y<ll;y++){
-					for(int k=0;k<PNUM;k++){
-						sendbuff[x][y*PNUM+k] = paras2[P+(x-1)*ll+y][k];
-					}
-				}
-			}//for
-			for(int x=1;x<numprocs;x++){
-				MPI_Send(sendbuff[x],ll*PNUM,MPI_DOUBLE,x,97,MPI_COMM_WORLD);
-			}
-		}else{
-			slaverecv = new double[ll*PNUM];
-			obj_slave = new double[ll];
-			MPI_Recv(slaverecv,ll*PNUM,MPI_DOUBLE,0,97,MPI_COMM_WORLD,&status);
-			for(int i=0;i<ll;i++){
-				double temps[PNUM];
-				for(int j=0;j<PNUM;j++){
-					temps[j] = slaverecv[i*PNUM+j];
-				}
-				obj_slave[i] = objective(temps);
-			}
-			MPI_Send(obj_slave,ll,MPI_DOUBLE,0,96,MPI_COMM_WORLD);
-		}
-		if(myid==0){
-			for(int x=1;x<numprocs;x++){
-				MPI_Recv(obj_mpi,ll,MPI_DOUBLE,x,96,MPI_COMM_WORLD,&status);
-				for(int y=0;y<ll;y++){
-					obj[P+ll*(x-1)+y] = obj_mpi[y];
-				}
-			}
-			choose();
-			cout<<j<<" best = "<<best<<endl;
-			fout<<j<<" "<<best<<" ";
-			for(int i=0;i<PNUM;i++){
-				fout<<paras[0][i]<<" ";
-			}
-			fout<<endl;
-			if(best<=beta){
-				return 0;
-			}
-		}//if
-	}//times
 	fout.close();
 //	cout<<"best "<<best<<endl;
 	MPI_Finalize();
