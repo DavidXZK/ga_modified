@@ -26,13 +26,13 @@ int main(int argc,char**argv){
 	double *recvs = NULL;
 	double *obj_slaves = NULL;
 	double *obj_mpis = NULL;
-	int n=5;
+	int ntime=5;
 	int times = 2000;
 	double beta = 0;
 	int ll = P/(numprocs -1);
 	readData();
 	MPI_Barrier(MPI_COMM_WORLD);
-	if(myid==0){
+	if(myid == 0){
 		sendbuff = new double*[numprocs];
 		sends = new double*[numprocs];
 		obj_mpi = new double[ll];
@@ -41,33 +41,49 @@ int main(int argc,char**argv){
 			sendbuff[j] = new double[ll*PNUM];
 			sends[j] = new double[ll*PNUM];
 		}
-		cout<<"before init"<<endl;
-		init();
-		popinit();
-		encoding();
-		for(int x = 1;x<numprocs;x++){
-			for(int y=0;y<ll;y++){
-				for(int k=0;k<PNUM;k++){
-					sends[x][y*PNUM+k] = paras[(x-1)*ll+y][k];
-				}
-			}
-		}//for
-		for(int x=1;x<numprocs;x++){
-			MPI_Send(sends[x],ll*PNUM,MPI_DOUBLE,x,99,MPI_COMM_WORLD);
-		}
 	}else{
 		recvs = new double[ll*PNUM];
 		obj_slaves = new double[ll];
-		MPI_Recv(recvs,ll*PNUM,MPI_DOUBLE,0,99,MPI_COMM_WORLD,&status);
-		for(int i=0;i<ll;i++){
-			double temps[PNUM];
-			for(int j=0;j<PNUM;j++){
-				temps[j] = recvs[i*PNUM+j];
-			}
-			obj_slaves[i] = objective(temps);
-		}
-		MPI_Send(obj_slaves,ll,MPI_DOUBLE,0,98,MPI_COMM_WORLD);
 	}
+	for(int i=0;i<ntime;i++){
+		readW();
+		MPI_Barrier(MPI_COMM_WORLD);
+		if(myid == 0){
+			cout<<"before init"<<endl;
+			init();
+			popinit();
+			encoding();
+			for(int x = 1;x < numprocs;x ++){
+				for(int y = 0;y < ll;y ++){
+					for(int k = 0;k < PNUM;k ++){
+						sends[x][y*PNUM+k] = paras[(x-1)*ll+y][k];
+					}
+				}
+			}//for
+			for(int x = 1;x < numprocs;x ++){
+				MPI_Send(sends[x],ll*PNUM,MPI_DOUBLE,x,99,MPI_COMM_WORLD);
+			}
+			for(int x = 1;x < numprocs;x ++){
+				MPI_Recv(obj_mpis,ll,MPI_DOUBLE,x,98,MPI_COMM_WORLD,&status);
+				for(int y = 0;y < ll;y ++){
+					obj[ll*(x-1)+y] = obj_mpis[y];
+					//cout<<"obj "<<P+ll*(x-1)+y<<" "<<obj[P+ll*(x-1)+y]<<endl;
+				}
+			}
+		}else{
+			MPI_Recv(recvs,ll*PNUM,MPI_DOUBLE,0,99,MPI_COMM_WORLD,&status);
+			for(int i = 0;i < ll;i ++){
+				double temps[PNUM];
+				for(int j = 0;j < PNUM;j ++){
+					temps[j] = recvs[i*PNUM+j];
+				}
+				obj_slaves[i] = objective(temps);
+			}
+			MPI_Send(obj_slaves,ll,MPI_DOUBLE,0,98,MPI_COMM_WORLD);
+		}
+
+	}//for ntime
+	
 	if(myid==0){
 		for(int x=1;x<numprocs;x++){
 			MPI_Recv(obj_mpis,ll,MPI_DOUBLE,x,98,MPI_COMM_WORLD,&status);

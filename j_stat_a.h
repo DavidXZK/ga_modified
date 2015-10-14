@@ -204,23 +204,13 @@ void getS(double *para){
 			revmean[i][0] = sum/RNUM;
 		}//if
 	}//for
-	double TotalR[N];
-	memset(TotalR,0,sizeof(double)*N);
-	for(int i=0;i<RNUM;i++){
-		double sums[IN];
-		memset(sums,0,sizeof(sums));
-		for(int j=0;j<N;j++){
-			sums[indu[j]] += rev[j][i];
-		}
-		for(int j=0;j<N;j++){
-			TotalR[j] += rev[j][i]/sums[indu[j]]; 
-		}
-	}//for RNUM
+	double sums[IN];
+	memset(sums,0,sizeof(sums));
 	for(int i=0;i<N;i++){
-		if(TotalR[i]<0){
-			cout<<i<<"TotalR = "<<TotalR[i]<<endl;
-		}
-		revmean[i][1] = TotalR[i]/RNUM;
+		sums[indu[i]] += revmean[i][0];
+	}
+	for(int i=0;i<N;i++){
+		revmean[i][1] = revmean[i][0] / sums[indu[i]];
 	}
 	// now we get phat == revmean
 	for(int i=0;i<N;i++){
@@ -341,23 +331,13 @@ double jstat_a(double *para){
 			revmean[i][0] = sum/RNUM;
 		}//if
 	}//for
-	double TotalR[N];
-	memset(TotalR,0,sizeof(double)*N);
-	for(int i=0;i<RNUM;i++){
-		double sums[IN];
-		memset(sums,0,sizeof(sums));
-		for(int j=0;j<N;j++){
-			sums[indu[j]] += rev[j][i];
-		}
-		for(int j=0;j<N;j++){
-			TotalR[j] += rev[j][i]/sums[indu[j]]; 
-		}
-	}//for RNUM
+	double sums[IN];
+	memset(sums,0,sizeof(sums));
 	for(int i=0;i<N;i++){
-		if(TotalR[i]<0){
-			cout<<i<<"TotalR = "<<TotalR[i]<<endl;
-		}
-		revmean[i][1] = TotalR[i]/RNUM;
+		sums[indu[i]] += revmean[i][0];
+	}
+	for(int i=0;i<N;i++){
+		revmean[i][1] = revmean[i][0] / sums[indu[i]];
 	}
 	// now we get phat == revmean
 	for(int i=0;i<N;i++){

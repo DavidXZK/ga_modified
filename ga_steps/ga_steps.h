@@ -161,24 +161,18 @@ void sort(double a[],int b[],int zz,int yy){    //快排,b记录的是顺序
 		sort(a,b,z+1,yy);
 	}
 }
+//***************************readW*****************************
+void readW(){
+	ifstream fin("WW");
+	for(int i=0;i<Q;i++){
+		for(int j=0;j<Q;j++){
+			fin>>W[i][j];
+		}
+	}
+}
 //***************************readdata**************************
 void readData(){
 	cout<<"GA() in"<<endl;
-	if(FLAG == 0){
-		for(int i = 0;i < 2*NN;i ++){
-			for(int j = 0;j < 2*NN;j ++){
-				W[i][j] = (i==j)?1:0;
-			}
-		}
-	}else{
-		ifstream fw("WW");
-		for(int i = 0;i < 2*NN;i ++){
-			for(int j = 0;j < 2*NN;j ++){
-				fw>>W[i][j];
-			}
-		}//for
-		fw.close();
-	}
 	//mur mub cl ch k rho east middle dindus1~9 lnasset lnyear
 	//regsoe regforeign regprivate regcollective reglegal lna2 lny2 1
 	//-3 10
