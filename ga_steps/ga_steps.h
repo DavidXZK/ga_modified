@@ -41,7 +41,7 @@ double q0[N],W[Q][Q],rev[N][RNUM],Ws[Q][Q];
 double F[IN][RNUM],G[IN][RNUM];
 double q_bar[IN][RNUM],q_ijr[IN][RNUM],q_ijb[IN][RNUM];
 
-ofstream fout("result_ga_modified_b.txt");
+ofstream fout("result/result_ga_modified_b.txt");
 
 //************************ normal distribution function*******************
 double normal(double z){

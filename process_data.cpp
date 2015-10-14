@@ -105,7 +105,7 @@ int main(int argc,char**argv){
 	//para Y:lnasset share color industry q0 t
 	ofstream fout_Y("para_y.txt");
 	for(int i=0;i<N;i++){
-		fout_Y<<log(Y[i][0])<<" "<<Y[i][1]<<" "<<color[i]<<" "<<industry[i]<<" "<<q0[industry[i]]<<" "<<t[industry[i]]<<endl;
+		fout_Y<<Y[i][0]<<" "<<Y[i][1]<<" "<<color[i]<<" "<<industry[i]<<" "<<q0[industry[i]]<<" "<<t[industry[i]]<<endl;
 	}//for
 	fout_Y.close();
 	cout<<"Z done"<<endl;
