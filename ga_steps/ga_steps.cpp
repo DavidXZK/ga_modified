@@ -26,8 +26,8 @@ int main(int argc,char**argv){
 	double *recvs = NULL;
 	double *obj_slaves = NULL;
 	double *obj_mpis = NULL;
-	int ntime=5;
-	int times = 2000;
+	//int ntime=5;
+	//int times = 2000;
 	double beta = 0;
 	int ll = P/(numprocs -1);
 	readData();
@@ -46,7 +46,7 @@ int main(int argc,char**argv){
 		obj_slaves = new double[ll];
 	}
 	//malloc memory
-	for(int i=0;i<ntime;i++){
+	for(int i=0;i<ntimes;i++){
 		readW();
 		MPI_Barrier(MPI_COMM_WORLD);
 		if(myid == 0){
@@ -68,7 +68,6 @@ int main(int argc,char**argv){
 				MPI_Recv(obj_mpis,ll,MPI_DOUBLE,x,98,MPI_COMM_WORLD,&status);
 				for(int y = 0;y < ll;y ++){
 					obj[ll*(x-1)+y] = obj_mpis[y];
-					//cout<<"obj "<<P+ll*(x-1)+y<<" "<<obj[P+ll*(x-1)+y]<<endl;
 				}
 			}
 		}else{
@@ -137,7 +136,7 @@ int main(int argc,char**argv){
 			fout<<"*****************************************************"<<endl;
 			for(int j=0;j<Q;j++){
 				for(int k=0;k<Q;k++){
-					fout<<W[i][j]<<" ";
+					fout<<W[j][k]<<" ";
 				}
 				fout<<endl;
 			}
@@ -155,7 +154,7 @@ int main(int argc,char**argv){
 				foutw<<endl;
 			}
 			foutw.close();
-		}
+		}//myid == 0
 
 	}//for ntime
 	

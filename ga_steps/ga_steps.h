@@ -20,6 +20,7 @@ const int HH = 100;
 const int P = 800;    //population quantity
 const int M = 20;  //code size;
 const int FLAG = 0;
+int times = 0, ntimes = 0;
 int color[N];    //black or white 0 1 2
 int indu[N];     //belong to which industry
 double X[N][XNUM];  //X变量
@@ -169,10 +170,14 @@ void readW(){
 			fin>>W[i][j];
 		}
 	}
+	fin.close();
 }
 //***************************readdata**************************
 void readData(){
 	cout<<"GA() in"<<endl;
+	ifstream fin_times("configuration.txt");
+	fin_times>>ntimes>>times;
+	fin_times.close();
 	//mur mub cl ch k rho east middle dindus1~9 lnasset lnyear
 	//regsoe regforeign regprivate regcollective reglegal lna2 lny2 1
 	//-3 10
@@ -429,23 +434,13 @@ double objective(double *para){
 			revmean[i][0] = sum/RNUM;
 		}//if
 	}//for
-	double TotalR[N];
-	memset(TotalR,0,sizeof(double)*N);
-	for(int i=0;i<RNUM;i++){
-		double sums[IN];
-		memset(sums,0,sizeof(sums));
-		for(int j=0;j<N;j++){
-			sums[indu[j]] += rev[j][i];
-		}
-		for(int j=0;j<N;j++){
-			TotalR[j] += rev[j][i]/sums[indu[j]]; 
-		}
-	}//for RNUM
-	for(int i=0;i<N;i++){
-		if(TotalR[i]<0){
-			cout<<i<<"TotalR = "<<TotalR[i]<<endl;
-		}
-		revmean[i][1] = TotalR[i]/RNUM;
+	double sums[IN];
+	memset(sums,0,sizeof(sums));
+	for(int i = 0;i < N;i ++){
+		sums[indu[i]] += revmean[i][0];
+	}
+	for(int i = 0;i < N;i ++){
+		revmean[i][1] = revmean[i][0] / sums[indu[i]];
 	}
 	// now we get phat == revmean
 	for(int i=0;i<N;i++){
