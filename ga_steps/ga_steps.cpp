@@ -146,6 +146,8 @@ int main(int argc,char**argv){
 				cout<<"wrong"<<endl;
 				return -1;
 			}
+			double js = jstat(paras[0]);
+			fout<<"jstat:"<<js<<endl;
 			ofstream foutw("WW");
 			for(int j=0;j<Q;j++){
 				for(int k=0;k<Q;k++){
